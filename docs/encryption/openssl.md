@@ -8,6 +8,15 @@ If a password is set, the files are encrypted before being sent to the cloud.
 
 If you switch between RClone Crypt format and OpenSSL enc format, you have to delete the cloud vault files **manually** and **fully**, so that the plugin can re-sync (i.e. re-upload) the newly encrypted versions to the cloud.
 
+## Security limitations
+
+This format is kept for interoperability with the `openssl enc` CLI, which fixes two weaknesses:
+
+- **Unauthenticated.** AES-256-CBC is used **without a MAC**, so tampering or bit-rot on the remote cannot be detected — a corrupted/altered file simply decrypts to garbage instead of failing loudly.
+- **Low KDF iterations.** The key is derived with PBKDF2 at only `20000` iterations (the old openssl default), far below current guidance (OWASP ~600k), which weakens resistance to offline password brute-force if the remote is compromised.
+
+For new vaults prefer the [RClone Crypt](./rclone.md) format, which is **authenticated** (XSalsa20-Poly1305). The settings UI defaults to and recommends it.
+
 ## Comparation between encryption formats
 
 See the doc [Comparation](./comparation.md).

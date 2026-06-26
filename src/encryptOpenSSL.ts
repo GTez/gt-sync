@@ -1,6 +1,15 @@
 import { base32, base64url } from "rfc4648";
 import { bufferToArrayBuffer, hexStringToTypedArray } from "./misc";
 
+// SECURITY NOTE: this mode mirrors `openssl enc -aes-256-cbc -pbkdf2` for
+// interop with the openssl CLI. That interop fixes two weaknesses we cannot
+// change without breaking the format:
+//   - DEFAULT_ITER (20000) is far below current PBKDF2 guidance (OWASP ~600k),
+//     so it offers less resistance to offline brute-force of the password.
+//   - AES-256-CBC here has NO MAC, so it is UNAUTHENTICATED: tampering or
+//     bit-rot on the remote is undetectable and decrypts to garbage.
+// Prefer the rclone crypt mode (encryptRClone.ts, XSalsa20-Poly1305) which is
+// authenticated. The settings UI steers new users toward it.
 const DEFAULT_ITER = 20000;
 
 // base32.stringify(Buffer.from('Salted__'))
