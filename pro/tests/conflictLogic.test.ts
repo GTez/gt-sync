@@ -1,8 +1,11 @@
-import { deepStrictEqual, rejects, throws } from "assert";
+import { deepStrictEqual, rejects, strictEqual, throws } from "assert";
+import type { Entity } from "../../src/baseTypes";
+import { FakeFs } from "../../src/fsAll";
 import {
   getFileRenameForDup,
+  isMergable,
+  mergeFile,
   threeWayMerge,
-  twoWayMerge,
 } from "../src/conflictLogic";
 
 describe("New name is generated", () => {
@@ -74,58 +77,94 @@ describe("New name is generated", () => {
   });
 });
 
-describe("Two way merge", () => {
-  it("should correctly merge from zero files", async () => {
-    const a = "aaa";
-    const b = "bbb";
-    const res = twoWayMerge(a, b);
-    const expected = `\`<<<<<<<\`
-aaa
-\`=======\`
-bbb
-\`>>>>>>>\``;
-    deepStrictEqual(expected, res);
+describe("isMergable is defensive against missing entities", () => {
+  it("should return false for an undefined entity (no crash)", () => {
+    // regression: a deleted side passes undefined here. Previously this threw
+    // a TypeError (a.key!) and aborted the whole sync.
+    strictEqual(isMergable(undefined as unknown as Entity), false);
   });
 
-  it("should correctly merge from common lines", async () => {
-    const a = `
-Something is cool. 中文1
-Other thing is cooler. 哈哈！
-`;
-    const b = `
-Anything is cool. 中文2
-Other thing is cooler. 哈哈！
-`;
-    const res = twoWayMerge(a, b);
-    // console.log(res);
-    const expected = `
-\`<<<<<<<\`
-Something is cool. 中文1
-\`=======\`
-Anything is cool. 中文2
-\`>>>>>>>\`
-Other thing is cooler. 哈哈！
-`;
-    deepStrictEqual(expected, res);
+  it("should still classify real markdown entities", () => {
+    strictEqual(isMergable({ keyRaw: "x.md", key: "x.md", sizeRaw: 1 }), true);
+    strictEqual(
+      isMergable({ keyRaw: "x.png", key: "x.png", sizeRaw: 1 }),
+      false
+    );
+  });
+});
+
+describe("mergeFile refuses to merge without a base version", () => {
+  // a tiny in-memory FakeFs covering only what mergeFile touches
+  class MemFs extends FakeFs {
+    kind = "mem";
+    store = new Map<string, ArrayBuffer>();
+    constructor(seed: Record<string, string>) {
+      super();
+      for (const [k, v] of Object.entries(seed)) {
+        this.store.set(k, new TextEncoder().encode(v).buffer);
+      }
+    }
+    async readFile(key: string): Promise<ArrayBuffer> {
+      return this.store.get(key)!;
+    }
+    async writeFile(
+      key: string,
+      content: ArrayBuffer,
+      mtime: number,
+      ctime: number
+    ): Promise<Entity> {
+      this.store.set(key, content);
+      return { keyRaw: key, mtimeCli: mtime, ctimeCli: ctime, sizeRaw: 0 };
+    }
+    // unused in these tests
+    async walk(): Promise<Entity[]> {
+      throw new Error("not implemented");
+    }
+    async walkPartial(): Promise<Entity[]> {
+      throw new Error("not implemented");
+    }
+    async stat(): Promise<Entity> {
+      throw new Error("not implemented");
+    }
+    async mkdir(): Promise<Entity> {
+      throw new Error("not implemented");
+    }
+    async rename(): Promise<void> {
+      throw new Error("not implemented");
+    }
+    async rm(): Promise<void> {
+      throw new Error("not implemented");
+    }
+    async checkConnect(): Promise<boolean> {
+      return true;
+    }
+    async getUserDisplayName(): Promise<string> {
+      return "mem";
+    }
+    async revokeAuth(): Promise<any> {}
+    allowEmptyFile(): boolean {
+      return true;
+    }
+  }
+
+  it("throws when contents differ and there is no base (no silent loss)", async () => {
+    const left = new MemFs({ "note.md": "aaa" });
+    const right = new MemFs({ "note.md": "bbb" });
+    await rejects(
+      () => mergeFile("note.md", left, right, null),
+      /without a base version/
+    );
   });
 
-  it("should merge by lines", async () => {
-    const a = `
-Something is cool. 中文1
-`;
-    const b = `
-Something is cooler. 中文2
-`;
-    const res = twoWayMerge(a, b);
-    // console.log(res);
-    const expected = `
-\`<<<<<<<\`
-Something is cool. 中文1
-\`=======\`
-Something is cooler. 中文2
-\`>>>>>>>\`
-`;
-    deepStrictEqual(expected, res);
+  it("still succeeds with a real base (3-way merge)", async () => {
+    const left = new MemFs({ "note.md": "base\nleft" });
+    const right = new MemFs({ "note.md": "base\nright" });
+    const base = new TextEncoder().encode("base").buffer;
+    const { content } = await mergeFile("note.md", left, right, base);
+    const merged = new TextDecoder().decode(content);
+    // both sides' unique lines must survive (here as conflict markers)
+    deepStrictEqual(merged.includes("left"), true);
+    deepStrictEqual(merged.includes("right"), true);
   });
 });
 

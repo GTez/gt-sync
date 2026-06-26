@@ -1,5 +1,49 @@
 import { strict as assert } from "assert";
-import { checkIsSkipItemOrNotByName } from "../src/sync";
+import type { Entity } from "../../src/baseTypes";
+import { checkIsSkipItemOrNotByName, isLocalFileUnmodified } from "../src/sync";
+
+describe("Sync: isLocalFileUnmodified", () => {
+  it("treats matching client mtime + size as unmodified", () => {
+    const prevSync: Entity = {
+      keyRaw: "a.md",
+      mtimeCli: 1000,
+      mtimeSvr: 2000,
+      sizeEnc: 50,
+      sizeRaw: 42,
+    };
+    const local: Entity = { keyRaw: "a.md", mtimeCli: 1000, sizeRaw: 42 };
+    local.sizeEnc = 50;
+    assert.ok(isLocalFileUnmodified(prevSync, local));
+  });
+
+  it("does NOT match a modified file whose mtimeCli coincides with prev mtimeSvr (regression)", () => {
+    // the dangerous case: a locally edited file whose new client mtime happens
+    // to equal the previous sync's SERVER mtime, with an unchanged enc size.
+    // The old asymmetric check matched this and deleted the edited file.
+    const prevSync: Entity = {
+      keyRaw: "a.md",
+      mtimeCli: 1000,
+      mtimeSvr: 5555,
+      sizeEnc: 50,
+      sizeRaw: 42,
+    };
+    const local: Entity = { keyRaw: "a.md", mtimeCli: 5555, sizeRaw: 42 };
+    local.sizeEnc = 50;
+    assert.ok(!isLocalFileUnmodified(prevSync, local));
+  });
+
+  it("does NOT match when size changed", () => {
+    const prevSync: Entity = {
+      keyRaw: "a.md",
+      mtimeCli: 1000,
+      sizeEnc: 50,
+      sizeRaw: 42,
+    };
+    const local: Entity = { keyRaw: "a.md", mtimeCli: 1000, sizeRaw: 42 };
+    local.sizeEnc = 99;
+    assert.ok(!isLocalFileUnmodified(prevSync, local));
+  });
+});
 
 describe("Sync: checkIsSkipItemOrNotByName", () => {
   it("should be ok everywhere for empty config", async () => {

@@ -1,5 +1,3 @@
-// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
-import AggregateError from "aggregate-error";
 import PQueue from "p-queue";
 import XRegExp from "xregexp";
 import type {
@@ -146,6 +144,25 @@ interface IsSkipResult {
   isExplictlyIgnored: boolean;
   finalIsIgnored: boolean;
 }
+
+/**
+ * Whether a local file is unchanged since the last successful sync.
+ *
+ * Mirrors the remote-side "unmodified" check: compare like-for-like client
+ * mtimes plus the encrypted size. Previously the local side ALSO accepted
+ * `prevSync.mtimeSvr === local.mtimeCli` (a different field family — the prev
+ * sync's SERVER mtime vs the local CLIENT mtime). That extra disjunct widened
+ * the match and could mis-classify a locally MODIFIED file as unmodified,
+ * routing it into delete-local instead of push -> silent data loss.
+ */
+export const isLocalFileUnmodified = (
+  prevSync: Entity,
+  local: Entity
+): boolean => {
+  return (
+    prevSync.mtimeCli === local.mtimeCli && prevSync.sizeEnc === local.sizeEnc
+  );
+};
 
 export const checkIsSkipItemOrNotByName = (
   key: string,
@@ -383,7 +400,6 @@ const ensembleMixedEnties = async (
   const skipOrNotResults: Record<string, IsSkipResult> = {};
 
   // remote has to be first
-  let remoteMaySkipCountAndNotConfig = 0;
   for (const remote of remoteEntityList) {
     const remoteCopied = ensureMTimeOfRemoteEntityValid(
       copyEntityAndFixTimeFormat(remote, serviceType)
@@ -401,9 +417,6 @@ const ensembleMixedEnties = async (
       onlyAllowPaths
     );
     skipOrNotResults[key] = skipOrNot;
-    if (skipOrNot.finalIsIgnored && !key.startsWith(configDir)) {
-      remoteMaySkipCountAndNotConfig += 1;
-    }
 
     // 20240907: users (not on windows) doesn't like it. revert back now.
     // TODO: platform specific but not introducing obsidian dependency into sync.ts
@@ -423,48 +436,49 @@ const ensembleMixedEnties = async (
   profiler?.insert("ensembleMixedEnties: finish remote");
   profiler?.insertSize("sizeof finalMappings", finalMappings);
 
-  if (
-    Object.keys(finalMappings).filter((k) => !k.startsWith(configDir)).length -
-      remoteMaySkipCountAndNotConfig ===
-      0 ||
-    localEntityList.filter((e) => !e.key?.startsWith(configDir)).length === 0
-  ) {
-    // Special checking:
-    // if one side is totally empty,
-    // usually that's a hard rest.
-    // So we need to ignore everything of prevSyncEntityList to avoid deletions!
-    // TODO: acutally erase everything of prevSyncEntityList?
-    // TODO: local should also go through a checkIsSkipItemOrNotByName checking beforehand
-  } else {
-    // normally go through the prevSyncEntityList
-    for (const prevSync of prevSyncEntityList) {
-      const key = prevSync.key!;
+  // Always reconcile against prevSyncEntityList.
+  //
+  // Previously, if EITHER side had zero syncable non-config entries we skipped
+  // prevSync entirely "to avoid deletions" on a suspected hard reset. That had
+  // two bad consequences:
+  //   1. a legitimate full-vault deletion on one device never propagated — the
+  //      other side's files were treated as new and silently re-created; there
+  //      was no supported way to sync a full wipe.
+  //   2. it was silent either way, so the user never learned what happened.
+  //
+  // Instead we let the deletions flow into the plan and rely on the existing
+  // `protectModifyPercentage` gate in doActualSync (default 50%) as the safety
+  // net: a transient empty listing (or an unintended mass delete) trips that
+  // guard and aborts with a clear, user-facing error, rather than silently
+  // wiping or silently resurrecting files. Users who genuinely want a full
+  // wipe raise the percentage (set it to 100 to allow deleting everything).
+  for (const prevSync of prevSyncEntityList) {
+    const key = prevSync.key!;
 
-      if (!(key in skipOrNotResults)) {
-        const skipOrNot = checkIsSkipItemOrNotByName(
-          key,
-          syncConfigDir,
-          syncBookmarks,
-          syncUnderscoreItems,
-          configDir,
-          ignorePaths,
-          onlyAllowPaths
-        );
-        skipOrNotResults[key] = skipOrNot;
-      }
-
-      // TODO: abstraction leaking?
-      const prevSyncCopied = await fsEncrypt.encryptEntity(
-        copyEntityAndFixTimeFormat(prevSync, serviceType)
+    if (!(key in skipOrNotResults)) {
+      const skipOrNot = checkIsSkipItemOrNotByName(
+        key,
+        syncConfigDir,
+        syncBookmarks,
+        syncUnderscoreItems,
+        configDir,
+        ignorePaths,
+        onlyAllowPaths
       );
-      if (finalMappings.hasOwnProperty(key)) {
-        finalMappings[key].prevSync = prevSyncCopied;
-      } else {
-        finalMappings[key] = {
-          key: key,
-          prevSync: prevSyncCopied,
-        };
-      }
+      skipOrNotResults[key] = skipOrNot;
+    }
+
+    // TODO: abstraction leaking?
+    const prevSyncCopied = await fsEncrypt.encryptEntity(
+      copyEntityAndFixTimeFormat(prevSync, serviceType)
+    );
+    if (finalMappings.hasOwnProperty(key)) {
+      finalMappings[key].prevSync = prevSyncCopied;
+    } else {
+      finalMappings[key] = {
+        key: key,
+        prevSync: prevSyncCopied,
+      };
     }
   }
 
@@ -1096,11 +1110,7 @@ const getSyncPlanInplace = async (
             mixedEntry.change = false;
             keptFolder.add(getParentFolder(key));
           }
-        } else if (
-          (prevSync.mtimeSvr === local.mtimeCli ||
-            prevSync.mtimeCli === local.mtimeCli) &&
-          prevSync.sizeEnc === local.sizeEnc
-        ) {
+        } else if (isLocalFileUnmodified(prevSync, local)) {
           // if A is in the previous list and UNMODIFIED, A has been deleted by B
           if (
             syncDirection === "incremental_push_only" ||
@@ -1451,22 +1461,26 @@ const dispatchOperationToActualV3 = async (
       // if we have prevSync,
       // we don't need to update prevSync, because the record is already there!
 
-      // but we might need to update content, because it's a new feature
+      // but we might need to update content, because it's a new feature.
+      // NOTE: r.local can be undefined here (e.g. branches 29/30/33/34 produce
+      // conflict_created_then_do_nothing when one side is missing), so guard it
+      // before use, otherwise isMergable / readFile dereference undefined and
+      // throw, aborting the whole sync.
       if (conflictAction === "smart_conflict") {
-        if (isMergable(r.local!)) {
+        if (r.local !== undefined && isMergable(r.local)) {
           const k = await getFileContentHistoryByVaultAndProfile(
             db,
             vaultRandomID,
             profileID,
-            r.local!
+            r.local
           );
           if (k === null || k === undefined) {
             await upsertFileContentHistoryByVaultAndProfile(
               db,
               vaultRandomID,
               profileID,
-              r.local!,
-              await fsLocal.readFile(r.local!.keyRaw)
+              r.local,
+              await fsLocal.readFile(r.local.keyRaw)
             );
           }
         }
@@ -1610,15 +1624,22 @@ const dispatchOperationToActualV3 = async (
     r.decision === "conflict_modified_then_smart_conflict"
   ) {
     // heavy lifting
-    if (isMergable(r.local!, r.remote!)) {
-      const origContent = await getFileContentHistoryByVaultAndProfile(
-        db,
-        vaultRandomID,
-        profileID,
-        r.local!
-      );
-      // console.debug(`we get origContent:`)
-      // console.debug(origContent)
+    const origContent = isMergable(r.local, r.remote)
+      ? await getFileContentHistoryByVaultAndProfile(
+          db,
+          vaultRandomID,
+          profileID,
+          r.local!
+        )
+      : undefined;
+    // console.debug(`we get origContent:`)
+    // console.debug(origContent)
+    if (
+      isMergable(r.local, r.remote) &&
+      origContent !== null &&
+      origContent !== undefined
+    ) {
+      // We have a recorded base version, so a real 3-way merge is safe.
       const { entity, content } = await mergeFile(
         r.key,
         fsLocal,
@@ -1639,7 +1660,11 @@ const dispatchOperationToActualV3 = async (
         content
       );
     } else {
-      // duplicate the files
+      // Either the file isn't mergable, OR there is no recorded base version
+      // (first conflict for this file, or history was cleared after a delete).
+      // Without a base we must NOT synthesize one and 3-way merge: that could
+      // silently drop content from one side. Instead duplicate-and-rename so
+      // both versions survive and the user reconciles them.
       await clearPrevSyncRecordByVaultAndProfile(
         db,
         vaultRandomID,

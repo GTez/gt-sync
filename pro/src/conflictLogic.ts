@@ -1,25 +1,17 @@
 import isEqual from "lodash/isEqual";
-// import {
-//   makePatches,
-//   applyPatches,
-//   stringifyPatches,
-//   parsePatch,
-// } from "@sanity/diff-match-patch";
-import {
-  LCS,
-  diff3Merge,
-  diffComm,
-  diffPatch,
-  mergeDiff3,
-  mergeDigIn,
-  patch,
-} from "node-diff3";
+import { mergeDigIn } from "node-diff3";
 import type { Entity } from "../../src/baseTypes";
 import { copyFile } from "../../src/copyLogic";
 import type { FakeFs } from "../../src/fsAll";
 import { MERGABLE_SIZE } from "./baseTypesPro";
 
-export function isMergable(a: Entity, b?: Entity) {
+export function isMergable(a: Entity | undefined, b?: Entity) {
+  // be defensive: a missing entity (e.g. a side that was deleted) is never
+  // mergable. Without this guard `a.key!` below throws a TypeError and aborts
+  // the whole sync (see the smart_conflict do-nothing dispatch branch).
+  if (a === undefined) {
+    return false;
+  }
   if (b !== undefined && a.key !== b.key) {
     return false;
   }
@@ -50,52 +42,6 @@ function mergeDigInModified(a: string, o: string, b: string) {
     conflict,
     result,
   };
-}
-
-function getLCSText(a: string, b: string) {
-  const aa = a.split("\n");
-  const bb = b.split("\n");
-  let raw = LCS(aa, bb);
-
-  const k: string[] = [];
-
-  do {
-    k.unshift(aa[raw.buffer1index]);
-
-    raw = raw.chain as any;
-  } while (raw !== null && raw !== undefined && raw.buffer1index !== -1);
-
-  return k.join("\n");
-}
-
-/**
- * It's tricky. We find LCS then pretend it's the original text
- * @param a
- * @param b
- * @returns
- */
-export function twoWayMerge(a: string, b: string): string {
-  const aa = a.trim();
-  const bb = b.trim();
-  if (aa === "" && bb === "") {
-    return aa.length >= bb.length ? a : b;
-  }
-  if (bb === "") {
-    return a;
-  }
-  if (aa === "") {
-    return b;
-  }
-
-  // const c = getLCSText(a, b);
-  // const patches = makePatches(c, a);
-  // const [d] = applyPatches(patches, b);
-  const c = getLCSText(a, b); //.trim();
-  // console.debug(`(start) LCS Text:`);
-  // console.debug(c);
-  // console.debug(`(end) LCS Text.`);
-  const d = mergeDigInModified(a, c, b).result.join("\n");
-  return d;
 }
 
 /**
@@ -140,20 +86,22 @@ export async function mergeFile(
     // TODO: save the write
   } else {
     if (contentOrig === null || contentOrig === undefined) {
-      const newText = twoWayMerge(
-        decoder.decode(contentLeft),
-        decoder.decode(contentRight)
+      // We have no recorded base version for this file, so a real 3-way merge
+      // is impossible. We must NOT fabricate a base (the old LCS-based
+      // twoWayMerge could silently drop lines that exist on only one side).
+      // The caller is responsible for falling back to duplicate-and-rename so
+      // both versions are preserved; reaching here is a programming error.
+      throw new Error(
+        `cannot merge "${key}" without a base version; ` +
+          `caller must duplicate-and-rename instead of merging`
       );
-      // no need to worry about the offset here because the array is new and not sliced
-      newArrayBuffer = new TextEncoder().encode(newText).buffer;
-    } else {
-      const newText = threeWayMerge(
-        decoder.decode(contentLeft),
-        decoder.decode(contentRight),
-        decoder.decode(contentOrig)
-      );
-      newArrayBuffer = new TextEncoder().encode(newText).buffer;
     }
+    const newText = threeWayMerge(
+      decoder.decode(contentLeft),
+      decoder.decode(contentRight),
+      decoder.decode(contentOrig)
+    );
+    newArrayBuffer = new TextEncoder().encode(newText).buffer;
   }
 
   const mtime = Date.now();
