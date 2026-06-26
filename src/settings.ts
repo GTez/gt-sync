@@ -2399,6 +2399,7 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
       dropdown
         .addOption("keep_newer", t("settings_conflictaction_keep_newer"))
         .addOption("keep_larger", t("settings_conflictaction_keep_larger"))
+        .addOption("keep_both", t("settings_conflictaction_keep_both"))
         .addOption(
           "smart_conflict",
           t("settings_conflictaction_smart_conflict")

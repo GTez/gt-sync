@@ -233,6 +233,7 @@ export type EmptyFolderCleanType = "skip" | "clean_both";
 export type ConflictActionType =
   | "keep_newer"
   | "keep_larger"
+  | "keep_both"
   | "smart_conflict";
 
 export type DecisionTypeForMixedEntity =
@@ -248,10 +249,12 @@ export type DecisionTypeForMixedEntity =
   | "remote_is_deleted_thus_also_delete_local"
   | "conflict_created_then_keep_local"
   | "conflict_created_then_keep_remote"
+  | "conflict_created_then_keep_both"
   | "conflict_created_then_smart_conflict"
   | "conflict_created_then_do_nothing"
   | "conflict_modified_then_keep_local"
   | "conflict_modified_then_keep_remote"
+  | "conflict_modified_then_keep_both"
   | "conflict_modified_then_smart_conflict"
   | "folder_existed_both_then_do_nothing"
   | "folder_existed_local_then_also_create_remote"
@@ -309,6 +312,12 @@ export interface MixedEntity {
 
   sideNotes?: any;
 }
+
+/**
+ * The whole sync plan: a mapping from key to its reconciled MixedEntity.
+ * (Relocated into the Apache src/ tree so the engine here owns it.)
+ */
+export type SyncPlanType = Record<string, MixedEntity>;
 
 /**
  * @deprecated

@@ -293,6 +293,7 @@
   "settings_conflictaction_desc": "如果一个文件，在本地和服务器都被创建或者修改了，那么这就是一个“冲突”情况。如何处理？这个设置只在双向同步时候生效。",
   "settings_conflictaction_keep_newer": "保留最后修改的版本（默认）",
   "settings_conflictaction_keep_larger": "保留文件体积较大的版本",
+  "settings_conflictaction_keep_both": "两个版本都保留（另一个版本另存为冲突副本）",
   "settings_cleanemptyfolder": "处理空文件夹",
   "settings_cleanemptyfolder_desc": "同步算法主要是针对文件处理的，您需要手动指定空文件夹如何处理。",
   "settings_cleanemptyfolder_skip": "跳过处理空文件夹（默认）",
