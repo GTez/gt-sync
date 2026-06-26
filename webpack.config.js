@@ -111,7 +111,8 @@ module.exports = {
       // buffer: require.resolve("buffer/"),
       // console: require.resolve("console-browserify"),
       // constants: require.resolve("constants-browserify"),
-      crypto: require.resolve("crypto-browserify"),
+      // crypto-browserify + a randomUUID shim (needed by @azure/msal-node v5).
+      crypto: require.resolve("./cryptoShim.cjs"),
       // crypto: false,
       // domain: require.resolve("domain-browser"),
       // events: require.resolve("events"),

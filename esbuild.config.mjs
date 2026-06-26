@@ -55,6 +55,12 @@ esbuild
       // ...builtins
     ],
     inject: ["./esbuild.injecthelper.mjs"],
+    // crypto-browserify + a randomUUID shim (needed by @azure/msal-node v5,
+    // which imports randomUUID from node:crypto). Mirrors webpack's fallback.
+    alias: {
+      crypto: "./cryptoShim.cjs",
+      "node:crypto": "./cryptoShim.cjs",
+    },
     format: "cjs",
     // watch: !prod, // no longer valid in esbuild 0.17
     // es2020 for BigInt literals used by deps (p-queue, @aws-sdk checksums);
