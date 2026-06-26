@@ -57,7 +57,9 @@ esbuild
     inject: ["./esbuild.injecthelper.mjs"],
     format: "cjs",
     // watch: !prod, // no longer valid in esbuild 0.17
-    target: "es2016",
+    // es2020 for BigInt literals used by deps (p-queue, @aws-sdk checksums);
+    // Obsidian's Electron/Chromium runtime supports it.
+    target: "es2020",
     logLevel: "info",
     sourcemap: prod ? false : "inline",
     treeShaking: true,

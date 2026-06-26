@@ -8,13 +8,15 @@
     "strict": true,
     "allowJs": true,
     "noImplicitAny": true,
-    "moduleResolution": "node",
     // "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    // bundler resolution (webpack/esbuild) so packages that expose types only
+    // via an "exports" map (e.g. node-diff3) resolve correctly.
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "isolatedModules": true,
-    "lib": ["dom", "es5", "scripthost", "es2015", "webworker"]
+    "lib": ["dom", "es5", "scripthost", "es2015", "es2021", "webworker"]
   },
   "include": ["src/global.d.ts", "**/*.ts"]
 }

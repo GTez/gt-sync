@@ -65,6 +65,17 @@ module.exports = {
     new webpack.ProvidePlugin({
       process: "process/browser",
     }),
+    // Some deps import node builtins via the `node:` scheme (e.g. clean-stack
+    // -> `node:url`). Strip the prefix so the browser polyfill fallbacks below
+    // (e.g. url -> url/) apply instead of webpack erroring on the scheme.
+    new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+      resource.request = resource.request.replace(/^node:/, "");
+    }),
+    // An Obsidian plugin must ship a single main.js. Some deps (e.g. @aws-sdk
+    // event-stream serde) use dynamic import(), which webpack would emit as a
+    // separate async chunk that Obsidian cannot load. Force everything into one
+    // chunk so the dynamic imports are inlined into main.js.
+    new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
   ],
   module: {
     rules: [

@@ -1,5 +1,3 @@
-// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
-import AggregateError from "aggregate-error";
 import cloneDeep from "lodash/cloneDeep";
 import throttle from "lodash/throttle";
 import { FileText, RefreshCcw, RotateCcw, createElement } from "lucide";
