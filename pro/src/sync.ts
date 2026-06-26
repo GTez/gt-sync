@@ -1848,6 +1848,11 @@ export const doActualSync = async (
       const queue = new PQueue({ concurrency: concurrency, autoStart: true });
       const potentialErrors: Error[] = [];
       let tooManyErrors = false;
+      // queue.clear() only drops not-yet-started tasks; tasks already dequeued
+      // keep running and could write/delete after we decided to stop. Guard the
+      // start of each task with this signal so anything that hasn't begun its
+      // actual operation short-circuits instead.
+      const abortController = new AbortController();
 
       for (let k = 0; k < singleLevelOps.length; ++k) {
         const val = singleLevelOps[k];
@@ -1857,6 +1862,11 @@ export const doActualSync = async (
           // console.debug(
           //   `start syncing "${key}" with plan ${JSON.stringify(val)}`
           // );
+
+          if (abortController.signal.aborted) {
+            // too many errors already; do not start a new write/delete
+            return;
+          }
 
           await callbackSyncProcess?.(
             triggerSource,
@@ -1889,6 +1899,7 @@ export const doActualSync = async (
           potentialErrors.push(new Error(msg));
           if (potentialErrors.length >= 3) {
             tooManyErrors = true;
+            abortController.abort();
             queue.pause();
             queue.clear();
           }
@@ -1954,7 +1965,7 @@ export async function syncer(
     everythingOk: boolean
   ) => any,
   callbackSyncProcess?: any
-) {
+): Promise<boolean> {
   console.info(`starting sync.`);
   markIsSyncingFunc(true);
 
@@ -2102,7 +2113,6 @@ export async function syncer(
     await errNotifyFunc?.(triggerSource, error as Error);
 
     profiler?.insert("finish error branch");
-  } finally {
   }
 
   profiler?.insert("finish syncRun");
@@ -2116,4 +2126,9 @@ export async function syncer(
 
   console.info(`ending sync.`);
   markIsSyncingFunc(false);
+
+  // Return whether the whole run succeeded so the caller can react (e.g. avoid
+  // firing a "done" event on failure) instead of treating every run as a
+  // success. Errors are still surfaced via errNotifyFunc above.
+  return everythingOk;
 }

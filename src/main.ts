@@ -483,7 +483,7 @@ export default class RemotelySavePlugin extends Plugin {
 
     const configSaver = async () => await this.saveSettings();
 
-    await syncer(
+    const everythingOk = await syncer(
       fsLocal,
       fsRemote,
       fsEncrypt,
@@ -508,7 +508,11 @@ export default class RemotelySavePlugin extends Plugin {
     fsEncrypt.closeResources();
     (profiler as Profiler | undefined)?.clear();
 
-    this.syncEvent?.trigger("SYNC_DONE");
+    // Only signal a successful completion when the run actually succeeded.
+    // syncer already surfaced any error via errNotifyFunc.
+    if (everythingOk) {
+      this.syncEvent?.trigger("SYNC_DONE");
+    }
   }
 
   async onload() {

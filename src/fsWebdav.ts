@@ -918,9 +918,17 @@ export class FakeFsWebdav extends FakeFs {
       const remoteFileName = getWebdavPath(key, this.remoteBaseDir);
       await this.client.deleteFile(remoteFileName);
       // console.info(`delete ${remoteFileName} succeeded`);
-    } catch (err) {
-      console.error("some error while deleting");
+    } catch (err: any) {
+      // A 404 means the target is already gone, which is fine for a delete.
+      // Any other failure must NOT be swallowed: the remote would stay diverged
+      // from the recorded sync state while the caller thinks the delete worked.
+      if (err?.status === 404 || err?.response?.status === 404) {
+        console.info(`delete ${key} on webdav: already gone (404)`);
+        return;
+      }
+      console.error(`error while deleting ${key} on webdav`);
       console.error(err);
+      throw err;
     }
   }
 

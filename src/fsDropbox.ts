@@ -710,8 +710,11 @@ export class FakeFsDropbox extends FakeFs {
         `${key1}=>${key2}` // just a hint here
       );
     } catch (err) {
-      console.error("some error while moving");
+      // Do NOT swallow: a silently-failed move desyncs the prev-sync DB and can
+      // lose or duplicate data. Surface it so the sync is marked failed.
+      console.error(`error while moving ${key1} => ${key2} on dropbox`);
       console.error(err);
+      throw err;
     }
   }
 
@@ -731,8 +734,11 @@ export class FakeFsDropbox extends FakeFs {
         key // just a hint here
       );
     } catch (err) {
-      console.error("some error while deleting");
+      // Do NOT swallow: a failed delete leaves the remote diverged from the
+      // recorded sync state. Surface it so the sync is marked failed.
+      console.error(`error while deleting ${key} on dropbox`);
       console.error(err);
+      throw err;
     }
   }
 
