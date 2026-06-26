@@ -57,7 +57,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
+      - run: npm ci
+      - name: Audit production dependencies (informational)
+        run: npm audit --omit=dev
+        continue-on-error: true
+      - name: Lint and format check
+        run: npx @biomejs/biome ci .
       - run: npm test
       - run: npm run build
       - uses: actions/upload-artifact@v4
