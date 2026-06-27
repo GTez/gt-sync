@@ -359,7 +359,7 @@ const assignFolderDecisionInplace = (m: MixedEntity) => {
  * sync, local). Local/prevSync entities are run through encryptEntity so their
  * sizeEnc is comparable with the remote's encrypted size.
  */
-const ensembleMixedEntities = async (
+export const ensembleMixedEntities = async (
   localEntityList: Entity[],
   prevSyncEntityList: Entity[],
   remoteEntityList: Entity[],
@@ -436,7 +436,7 @@ const ensembleMixedEntities = async (
  * Assign decisions to every MixedEntity per the bidirectional table. Throws on
  * any non-bidirectional direction (intentionally unsupported in this engine).
  */
-const getSyncPlanInplace = async (
+export const getSyncPlanInplace = async (
   mixedEntityMappings: SyncPlanType,
   fsLocal: FakeFs,
   settings: RemotelySavePluginSettings
@@ -736,7 +736,7 @@ const dispatchOperation = async (
  * Execute the plan in three ordered phases: folder creations (parent->child),
  * file operations (concurrent, abortable), folder deletions (child->parent).
  */
-const doActualSync = async (
+export const doActualSync = async (
   mixedEntityMappings: SyncPlanType,
   fsLocal: FakeFs,
   fsEncrypt: FakeFsEncrypt,
