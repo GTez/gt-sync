@@ -108,9 +108,9 @@ interface OAuth2Info {
   revokeAuthSetting?: Setting;
 }
 
-const iconNameSyncWait = `remotely-save-sync-wait`;
-const iconNameSyncRunning = `remotely-save-sync-running`;
-const iconNameLogs = `remotely-save-logs`;
+const iconNameSyncWait = `gt-sync-wait`;
+const iconNameSyncRunning = `gt-sync-running`;
+const iconNameLogs = `gt-sync-logs`;
 
 const getIconSvg = () => {
   const iconSvgSyncWait = createElement(RotateCcw);

@@ -187,10 +187,10 @@ export interface RemotelySavePluginSettings {
   howToCleanEmptyFolder?: EmptyFolderCleanType;
 }
 
-export const COMMAND_URI = "remotely-save";
-export const COMMAND_CALLBACK = "remotely-save-cb";
-export const COMMAND_CALLBACK_ONEDRIVE = "remotely-save-cb-onedrive";
-export const COMMAND_CALLBACK_DROPBOX = "remotely-save-cb-dropbox";
+export const COMMAND_URI = "gt-sync";
+export const COMMAND_CALLBACK = "gt-sync-cb";
+export const COMMAND_CALLBACK_ONEDRIVE = "gt-sync-cb-onedrive";
+export const COMMAND_CALLBACK_DROPBOX = "gt-sync-cb-dropbox";
 
 export interface UriParams {
   func?: string;
@@ -321,7 +321,7 @@ export interface FileOrFolderMixedState {
   deltimeRemoteFmt?: string;
 }
 
-export const DEFAULT_DEBUG_FOLDER = "_debug_remotely_save/";
+export const DEFAULT_DEBUG_FOLDER = "_debug_gt_sync/";
 export const DEFAULT_SYNC_PLANS_HISTORY_FILE_PREFIX =
   "sync_plans_hist_exported_on_";
 export const DEFAULT_LOG_HISTORY_FILE_PREFIX = "log_hist_exported_on_";

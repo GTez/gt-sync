@@ -830,7 +830,7 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
       return this.plugin.i18n.t(x, vars);
     };
 
-    containerEl.createEl("h1", { text: "Remotely Save" });
+    containerEl.createEl("h1", { text: "GT Sync" });
 
     //////////////////////////////////////////////////
     // below for service chooser (part 1/2)
@@ -2456,7 +2456,7 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
       .setDesc(t("settings_import_desc"))
       .addText((text) =>
         text
-          .setPlaceholder("obsidian://remotely-save?func=settings&...")
+          .setPlaceholder("obsidian://gt-sync?func=settings&...")
           .setValue("")
           .onChange((val) => {
             importSettingVal = val;

@@ -1,3 +1,16 @@
-The codes or files or subfolders inside the folder `src`, `tests`, `docs`, `assets`, are released under the "Open Source" license: "Apache License, version 2.0", described at: https://www.apache.org/licenses/LICENSE-2.0 .
+GT Sync
 
-The codes or files or subfolders inside the folder `pro`, are released under the "Source Available" license: "PolyForm Strict License 1.0.0", described at: https://polyformproject.org/licenses/strict/1.0.0/ .
+The entire repository is released under the "Open Source" license:
+"Apache License, Version 2.0", described at:
+https://www.apache.org/licenses/LICENSE-2.0 .
+
+GT Sync is a fork of Remotely Save
+(https://github.com/remotely-save/remotely-save). Portions of this code are
+derived from Remotely Save, Copyright (c) the Remotely Save authors, which is
+also licensed under the Apache License, Version 2.0.
+
+The previously "Source Available" `pro/` directory (PolyForm Strict License
+1.0.0) and all of its paid "PRO" features and backends have been removed from
+this fork. No PolyForm-licensed code remains in this repository.
+
+Copyright (c) 2024 GTez and contributors.

@@ -1,11 +1,10 @@
 {
-  "id": "remotely-save",
-  "name": "Remotely Save",
+  "id": "gt-sync",
+  "name": "GT Sync",
   "version": "0.6.1",
   "minAppVersion": "0.13.21",
-  "description": "Yet another unofficial plugin allowing users to synchronize notes between local device and the cloud service.",
-  "author": "fyears",
-  "authorUrl": "https://github.com/fyears",
-  "isDesktopOnly": false,
-  "fundingUrl": "https://remotelysave.com"
+  "description": "Sync your notes between the local device and a cloud service (S3, Dropbox, OneDrive, WebDAV, Webdis), with end-to-end encryption. A fork of Remotely Save.",
+  "author": "GTez",
+  "authorUrl": "https://github.com/GTez",
+  "isDesktopOnly": false
 }

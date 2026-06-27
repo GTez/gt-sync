@@ -12,7 +12,7 @@ import { unixTimeToStr } from "./misc";
 
 const DB_VERSION_NUMBER_IN_HISTORY = [20211114, 20220108, 20220326, 20240220];
 export const DEFAULT_DB_VERSION_NUMBER: number = 20240220;
-export const DEFAULT_DB_NAME = "remotelysavedb";
+export const DEFAULT_DB_NAME = "gtsyncdb";
 export const DEFAULT_TBL_VERSION = "schemaversion";
 export const DEFAULT_SYNC_PLANS_HISTORY = "syncplanshistory";
 export const DEFAULT_TBL_VAULT_RANDOM_ID_MAPPING = "vaultrandomidmapping";
@@ -163,7 +163,7 @@ const migrateDBs = async (
   // drop any old code to reduce the verbose
   if (oldVer < 20220326) {
     throw Error(
-      "You are using a very old version of Remotely Save. No way to auto update internal DB. Please install and enable 0.3.40 firstly, then install a later version."
+      "You are using a very old version. No way to auto update internal DB. Please install and enable 0.3.40 firstly, then install a later version."
     );
   }
 
