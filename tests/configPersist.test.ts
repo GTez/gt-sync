@@ -16,29 +16,8 @@ const DEFAULT_SETTINGS: RemotelySavePluginSettings = {
   onedrive: {
     username: "test 🍎 emoji",
   } as any,
-  onedrivefull: {
-    username: "test 🍎 emoji",
-  } as any,
   webdis: {
     address: "addr",
-  } as any,
-  googledrive: {
-    refreshToken: "xxx",
-  } as any,
-  box: {
-    refreshToken: "xxx",
-  } as any,
-  pcloud: {
-    accessToken: "xxx",
-  } as any,
-  yandexdisk: {
-    refreshToken: "xxx",
-  } as any,
-  koofr: {
-    refreshToken: "xxx",
-  } as any,
-  azureblobstorage: {
-    containerSasUrl: "http://127.0.0.1",
   } as any,
   password: "password",
   serviceType: "s3",

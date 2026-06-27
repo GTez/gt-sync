@@ -21,15 +21,6 @@ import type {
 } from "./baseTypes";
 
 import cloneDeep from "lodash/cloneDeep";
-import { generateAzureBlobStorageSettingsPart } from "../pro/src/settingsAzureBlobStorage";
-import { generateBoxSettingsPart } from "../pro/src/settingsBox";
-import { generateClearDupFilesSettingsPart } from "../pro/src/settingsClearDupFiles";
-import { generateGoogleDriveSettingsPart } from "../pro/src/settingsGoogleDrive";
-import { generateKoofrSettingsPart } from "../pro/src/settingsKoofr";
-import { generateOnedriveFullSettingsPart } from "../pro/src/settingsOnedriveFull";
-import { generatePCloudSettingsPart } from "../pro/src/settingsPCloud";
-import { generateProSettingsPart } from "../pro/src/settingsPro";
-import { generateYandexDiskSettingsPart } from "../pro/src/settingsYandexDisk";
 import { API_VER_ENSURE_REQURL_OK, VALID_REQURL } from "./baseTypesObs";
 import { messyConfigToNormal } from "./configPersist";
 import {
@@ -1839,97 +1830,6 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
       });
 
     //////////////////////////////////////////////////
-    // below for Onedrive (Full)
-    //////////////////////////////////////////////////
-
-    const {
-      onedriveFullDiv,
-      onedriveFullAllowedToUsedDiv,
-      onedriveFullNotShowUpHintSetting,
-    } = generateOnedriveFullSettingsPart(
-      containerEl,
-      t,
-      this.app,
-      this.plugin,
-      () => this.plugin.saveSettings()
-    );
-
-    //////////////////////////////////////////////////
-    // below for googledrive
-    //////////////////////////////////////////////////
-
-    const {
-      googleDriveDiv,
-      googleDriveAllowedToUsedDiv,
-      googleDriveNotShowUpHintSetting,
-    } = generateGoogleDriveSettingsPart(
-      containerEl,
-      t,
-      this.app,
-      this.plugin,
-      () => this.plugin.saveSettings()
-    );
-
-    //////////////////////////////////////////////////
-    // below for box
-    //////////////////////////////////////////////////
-
-    const { boxDiv, boxAllowedToUsedDiv, boxNotShowUpHintSetting } =
-      generateBoxSettingsPart(containerEl, t, this.app, this.plugin, () =>
-        this.plugin.saveSettings()
-      );
-
-    //////////////////////////////////////////////////
-    // below for pcloud
-    //////////////////////////////////////////////////
-
-    const { pCloudDiv, pCloudAllowedToUsedDiv, pCloudNotShowUpHintSetting } =
-      generatePCloudSettingsPart(containerEl, t, this.app, this.plugin, () =>
-        this.plugin.saveSettings()
-      );
-
-    //////////////////////////////////////////////////
-    // below for yandexdisk
-    //////////////////////////////////////////////////
-
-    const {
-      yandexDiskDiv,
-      yandexDiskAllowedToUsedDiv,
-      yandexDiskNotShowUpHintSetting,
-    } = generateYandexDiskSettingsPart(
-      containerEl,
-      t,
-      this.app,
-      this.plugin,
-      () => this.plugin.saveSettings()
-    );
-
-    //////////////////////////////////////////////////
-    // below for koofr
-    //////////////////////////////////////////////////
-
-    const { koofrDiv, koofrAllowedToUsedDiv, koofrNotShowUpHintSetting } =
-      generateKoofrSettingsPart(containerEl, t, this.app, this.plugin, () =>
-        this.plugin.saveSettings()
-      );
-
-    //////////////////////////////////////////////////
-    // below for Azure Blob Storage
-    //////////////////////////////////////////////////
-
-    const {
-      azureBlobStorageDiv,
-      azureBlobStorageAllowedToUsedDiv,
-      azureBlobStorageNotShowUpHintSetting,
-    } = generateAzureBlobStorageSettingsPart(
-      containerEl,
-      t,
-      this.app,
-      this.plugin,
-      () => this.plugin.saveSettings()
-    );
-
-    //////////////////////////////////////////////////
     // below for general chooser (part 2/2)
     //////////////////////////////////////////////////
 
@@ -1944,32 +1844,6 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
         dropdown.addOption("webdav", t("settings_chooseservice_webdav"));
         dropdown.addOption("onedrive", t("settings_chooseservice_onedrive"));
         dropdown.addOption("webdis", t("settings_chooseservice_webdis"));
-
-        dropdown.addOption("separator line", "-----");
-        (dropdown.selectEl.lastChild as HTMLElement).setAttribute(
-          "disabled",
-          "disabled"
-        );
-
-        dropdown.addOption(
-          "googledrive",
-          t("settings_chooseservice_googledrive")
-        );
-        dropdown.addOption(
-          "onedrivefull",
-          t("settings_chooseservice_onedrivefull")
-        );
-        dropdown.addOption("box", t("settings_chooseservice_box"));
-        dropdown.addOption("pcloud", t("settings_chooseservice_pcloud"));
-        dropdown.addOption(
-          "yandexdisk",
-          t("settings_chooseservice_yandexdisk")
-        );
-        dropdown.addOption("koofr", t("settings_chooseservice_koofr"));
-        dropdown.addOption(
-          "azureblobstorage",
-          t("settings_chooseservice_azureblobstorage")
-        );
 
         dropdown
           .setValue(this.plugin.settings.serviceType)
@@ -1987,10 +1861,6 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
               "onedrive-hide",
               this.plugin.settings.serviceType !== "onedrive"
             );
-            onedriveFullDiv.toggleClass(
-              "onedrivefull-hide",
-              this.plugin.settings.serviceType !== "onedrivefull"
-            );
             webdavDiv.toggleClass(
               "webdav-hide",
               this.plugin.settings.serviceType !== "webdav"
@@ -1998,30 +1868,6 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
             webdisDiv.toggleClass(
               "webdis-hide",
               this.plugin.settings.serviceType !== "webdis"
-            );
-            googleDriveDiv.toggleClass(
-              "googledrive-hide",
-              this.plugin.settings.serviceType !== "googledrive"
-            );
-            boxDiv.toggleClass(
-              "box-hide",
-              this.plugin.settings.serviceType !== "box"
-            );
-            pCloudDiv.toggleClass(
-              "pcloud-hide",
-              this.plugin.settings.serviceType !== "pcloud"
-            );
-            yandexDiskDiv.toggleClass(
-              "yandexdisk-hide",
-              this.plugin.settings.serviceType !== "yandexdisk"
-            );
-            koofrDiv.toggleClass(
-              "koofr-hide",
-              this.plugin.settings.serviceType !== "koofr"
-            );
-            azureBlobStorageDiv.toggleClass(
-              "azureblobstorage-hide",
-              this.plugin.settings.serviceType !== "azureblobstorage"
             );
 
             await this.plugin.saveSettings();
@@ -2384,47 +2230,20 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
           });
       });
 
-    let conflictActionSettingOrigDesc = t("settings_conflictaction_desc");
-    if (
-      (this.plugin.settings.conflictAction ?? "keep_newer") === "smart_conflict"
-    ) {
-      conflictActionSettingOrigDesc += t(
-        "settings_conflictaction_smart_conflict_desc"
-      );
-    }
     const conflictActionSetting = new Setting(advDiv)
       .setName(t("settings_conflictaction"))
-      .setDesc(stringToFragment(conflictActionSettingOrigDesc));
+      .setDesc(stringToFragment(t("settings_conflictaction_desc")));
     conflictActionSetting.addDropdown((dropdown) => {
       dropdown
         .addOption("keep_newer", t("settings_conflictaction_keep_newer"))
         .addOption("keep_larger", t("settings_conflictaction_keep_larger"))
         .addOption("keep_both", t("settings_conflictaction_keep_both"))
-        .addOption(
-          "smart_conflict",
-          t("settings_conflictaction_smart_conflict")
-        )
         .setValue(this.plugin.settings.conflictAction ?? "keep_newer")
         .onChange(async (val) => {
           this.plugin.settings.conflictAction = val as ConflictActionType;
           await this.plugin.saveSettings();
-
-          conflictActionSettingOrigDesc = t("settings_conflictaction_desc");
-          if (
-            (this.plugin.settings.conflictAction ?? "keep_newer") ===
-            "smart_conflict"
-          ) {
-            conflictActionSettingOrigDesc += t(
-              "settings_conflictaction_smart_conflict_desc"
-            );
-          }
-          conflictActionSetting.setDesc(
-            stringToFragment(conflictActionSettingOrigDesc)
-          );
         });
     });
-
-    generateClearDupFilesSettingsPart(advDiv, t, this.app, this.plugin);
 
     const percentage1 = new Setting(advDiv)
       .setName(t("settings_protectmodifypercentage"))
@@ -2619,16 +2438,6 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
         });
       })
       .addButton(async (button) => {
-        button.setButtonText(t("settings_export_onedrivefull_button"));
-        button.onClick(async () => {
-          new ExportSettingsQrCodeModal(
-            this.app,
-            this.plugin,
-            "onedrivefull"
-          ).open();
-        });
-      })
-      .addButton(async (button) => {
         button.setButtonText(t("settings_export_webdav_button"));
         button.onClick(async () => {
           new ExportSettingsQrCodeModal(this.app, this.plugin, "webdav").open();
@@ -2638,54 +2447,6 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
         button.setButtonText(t("settings_export_webdis_button"));
         button.onClick(async () => {
           new ExportSettingsQrCodeModal(this.app, this.plugin, "webdis").open();
-        });
-      })
-      .addButton(async (button) => {
-        button.setButtonText(t("settings_export_googledrive_button"));
-        button.onClick(async () => {
-          new ExportSettingsQrCodeModal(
-            this.app,
-            this.plugin,
-            "googledrive"
-          ).open();
-        });
-      })
-      .addButton(async (button) => {
-        button.setButtonText(t("settings_export_box_button"));
-        button.onClick(async () => {
-          new ExportSettingsQrCodeModal(this.app, this.plugin, "box").open();
-        });
-      })
-      .addButton(async (button) => {
-        button.setButtonText(t("settings_export_pcloud_button"));
-        button.onClick(async () => {
-          new ExportSettingsQrCodeModal(this.app, this.plugin, "pcloud").open();
-        });
-      })
-      .addButton(async (button) => {
-        button.setButtonText(t("settings_export_yandexdisk_button"));
-        button.onClick(async () => {
-          new ExportSettingsQrCodeModal(
-            this.app,
-            this.plugin,
-            "yandexdisk"
-          ).open();
-        });
-      })
-      .addButton(async (button) => {
-        button.setButtonText(t("settings_export_koofr_button"));
-        button.onClick(async () => {
-          new ExportSettingsQrCodeModal(this.app, this.plugin, "koofr").open();
-        });
-      })
-      .addButton(async (button) => {
-        button.setButtonText(t("settings_export_azureblobstorage_button"));
-        button.onClick(async () => {
-          new ExportSettingsQrCodeModal(
-            this.app,
-            this.plugin,
-            "azureblobstorage"
-          ).open();
         });
       });
 
@@ -2740,33 +2501,6 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
           }
         });
       });
-
-    //////////////////////////////////////////////////
-    // below for pro
-    //////////////////////////////////////////////////
-
-    const proDiv = containerEl.createEl("div");
-    generateProSettingsPart(
-      proDiv,
-      t,
-      this.app,
-      this.plugin,
-      () => this.plugin.saveSettings(),
-      onedriveFullAllowedToUsedDiv,
-      onedriveFullNotShowUpHintSetting,
-      googleDriveAllowedToUsedDiv,
-      googleDriveNotShowUpHintSetting,
-      boxAllowedToUsedDiv,
-      boxNotShowUpHintSetting,
-      pCloudAllowedToUsedDiv,
-      pCloudNotShowUpHintSetting,
-      yandexDiskAllowedToUsedDiv,
-      yandexDiskNotShowUpHintSetting,
-      koofrAllowedToUsedDiv,
-      koofrNotShowUpHintSetting,
-      azureBlobStorageAllowedToUsedDiv,
-      azureBlobStorageNotShowUpHintSetting
-    );
 
     //////////////////////////////////////////////////
     // below for debug
