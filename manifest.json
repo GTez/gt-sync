@@ -1,7 +1,7 @@
 {
   "id": "gt-sync",
   "name": "GT Sync",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "minAppVersion": "0.13.21",
   "description": "Sync your notes between the local device and a cloud service (S3, Dropbox, OneDrive, WebDAV, Webdis), with end-to-end encryption. A fork of Remotely Save.",
   "author": "GTez",
