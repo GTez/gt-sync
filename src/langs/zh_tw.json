@@ -375,7 +375,7 @@
   "settings_resetcache_notice": "本地同步快取和資料庫已被刪除。請手動重新載入此外掛。",
 
   "syncalgov3_title": "歡迎使用 GT Sync",
-  "syncalgov3_texts": "GT Sync 是 Remotely Save 的一個個人開源（Apache-2.0）分支，重寫了同步引擎：\n<ul><li>支援 S3、Dropbox、OneDrive、WebDAV、Webdis 的雙向同步，</li><li>當兩端都修改時，會保留兩個版本（產生“(conflict ...)”副本）而不是覆蓋，</li><li>基於內容雜湊的變更偵測（不受不可靠的修改時間影響），</li><li>修改 / 刪除保護，</li><li>端對端加密（推薦 rclone crypt）。</li></ul>\n付費的“PRO”功能、帳號和後端已被移除；沒有任何遙測，也沒有任何需要購買的東西。\n<b>請務必備份您的庫（vault）。</b>\n如果您同意，請閱讀並勾選兩個勾選框，然後點選“同意”按鈕；如果不同意，請點選“不同意”按鈕，外掛將自動停止執行（unload）。\n原始碼與問題回報：<a href='https://github.com/GTez/remotely-save'>github.com/GTez/remotely-save</a>。",
+  "syncalgov3_texts": "GT Sync 是 Remotely Save 的一個個人開源（Apache-2.0）分支，重寫了同步引擎：\n<ul><li>支援 S3、Dropbox、OneDrive、WebDAV、Webdis 的雙向同步，</li><li>當兩端都修改時，會保留兩個版本（產生“(conflict ...)”副本）而不是覆蓋，</li><li>基於內容雜湊的變更偵測（不受不可靠的修改時間影響），</li><li>修改 / 刪除保護，</li><li>端對端加密（推薦 rclone crypt）。</li></ul>\n付費的“PRO”功能、帳號和後端已被移除；沒有任何遙測，也沒有任何需要購買的東西。\n<b>請務必備份您的庫（vault）。</b>\n如果您同意，請閱讀並勾選兩個勾選框，然後點選“同意”按鈕；如果不同意，請點選“不同意”按鈕，外掛將自動停止執行（unload）。\n原始碼與問題回報：<a href='https://github.com/GTez/gt-sync'>github.com/GTez/gt-sync</a>。",
   "syncalgov3_checkbox_manual_backup": "我將會首先手動備份我的庫（Vault）。",
   "syncalgov3_checkbox_requiremultidevupdate": "我理解，我需要在所有裝置上都更新此外掛使之正常執行。",
   "syncalgov3_button_agree": "同意",
